@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Session } from '@supabase/supabase-js';
+import NetInfo from '@react-native-community/netinfo';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { isDemo } from '@/lib/env';
 import { supabase } from '@/lib/supabase';
 import { createLocalAuth, toEmail, type AuthUser } from './localAuth';
+import { createSupabaseAuth } from './supabaseAuth';
 
 export { toEmail, type AuthUser };
 
@@ -20,24 +21,39 @@ type Ctx = {
 const AuthCtx = createContext<Ctx | null>(null);
 const localAuth = createLocalAuth(AsyncStorage);
 
-function fromSession(s: Session | null): AuthUser | null {
-  if (!s) return null;
-  const name = (s.user.user_metadata?.name as string | undefined) ?? s.user.email?.split('@')[0] ?? 'Vendedor';
-  return { id: s.user.id, name, email: s.user.email };
-}
+const isDeviceOffline = async () => {
+  try {
+    const net = await NetInfo.fetch();
+    return net.isConnected === false || net.isInternetReachable === false;
+  } catch {
+    return false;
+  }
+};
+
+const supabaseAuth = createSupabaseAuth(supabase.auth, AsyncStorage, isDeviceOffline);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
     if (isDemo) {
-      localAuth.getSession().then((u) => { setUser(u); setLoading(false); });
-      return;
+      localAuth.getSession().then((u) => {
+        if (active) { setUser(u); setLoading(false); }
+      });
+      return () => { active = false; };
     }
-    supabase.auth.getSession().then(({ data }) => { setUser(fromSession(data.session)); setLoading(false); });
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setUser(fromSession(s)));
-    return () => data.subscription.unsubscribe();
+
+    supabaseAuth.restoreSession().then((u) => {
+      if (active) { setUser(u); setLoading(false); }
+    });
+    const { data } = supabase.auth.onAuthStateChange((event, s) => {
+      supabaseAuth.syncFromEvent(event, s).then((u) => {
+        if (active) setUser(u);
+      });
+    });
+    return () => { active = false; data.subscription.unsubscribe(); };
   }, []);
 
   const signIn: Ctx['signIn'] = async (login, password) => {
@@ -46,8 +62,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (res.user) setUser(res.user);
       return res.error;
     }
-    const { error } = await supabase.auth.signInWithPassword({ email: toEmail(login), password });
-    return error ? 'Usuário ou senha incorretos.' : null;
+    const res = await supabaseAuth.signIn(login, password);
+    if (res.user) setUser(res.user);
+    return res.error;
   };
 
   const registerLocal: Ctx['registerLocal'] = async (input) => {
@@ -59,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     if (isDemo) await localAuth.signOut();
-    else await supabase.auth.signOut();
+    else await supabaseAuth.signOut();
     setUser(null);
   };
 

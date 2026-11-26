@@ -4,6 +4,7 @@ import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Banner, BottomSheet, Button, Logo, Text, TextField } from '@/components/ui';
 import { useAuth } from '@/features/auth/AuthContext';
+import { CREDENTIAL_ERROR } from '@/features/auth/supabaseAuth';
 import { colors, sizes, space } from '@/theme/tokens';
 
 export default function Login() {
@@ -21,7 +22,11 @@ export default function Login() {
   const [regError, setRegError] = useState<string | null>(null);
   const [regLoading, setRegLoading] = useState(false);
 
+  const canSubmit = login.trim().length > 0 && password.length > 0;
+  const isCredentialError = error === CREDENTIAL_ERROR;
+
   const submit = async () => {
+    if (!canSubmit) return;
     setLoading(true); setError(null);
     const err = await signIn(login, password);
     setLoading(false);
@@ -57,14 +62,15 @@ export default function Login() {
           <Text color={colors.muted}>Ponto de venda da sua loja</Text>
         </View>
         {error ? <Banner tone="danger" title={error} /> : null}
-        <TextField label="Usuário" icon="user" value={login} onChangeText={setLogin} autoCapitalize="none" autoCorrect={false}
-          autoComplete="username" textContentType="username" returnKeyType="next" />
-        <TextField label="Senha" icon="lock" value={password} onChangeText={setPassword} secureTextEntry
-          autoComplete="password" textContentType="password" onSubmitEditing={submit} error={error ? 'Confira a senha.' : undefined} />
+        <TextField label="Usuário" icon="user" value={login} onChangeText={(v) => { setLogin(v); if (error) setError(null); }}
+          autoCapitalize="none" autoCorrect={false} autoComplete="username" textContentType="username" returnKeyType="next" />
+        <TextField label="Senha" icon="lock" value={password} onChangeText={(v) => { setPassword(v); if (error) setError(null); }}
+          secureTextEntry autoComplete="password" textContentType="password" onSubmitEditing={submit}
+          error={isCredentialError ? 'Confira a senha.' : undefined} />
         {/* TODO §13.2: recuperação de senha ainda não definida no documento. */}
         <Pressable accessibilityRole="link" style={styles.forgot}><Text variant="label">Esqueci a senha</Text></Pressable>
-        <Button label="Entrar" onPress={submit} loading={loading} disabled={!login || !password}
-          accessibilityHint={!login || !password ? 'Preencha usuário e senha para entrar.' : undefined} />
+        <Button label="Entrar" onPress={submit} loading={loading} disabled={!canSubmit}
+          accessibilityHint={!canSubmit ? 'Preencha usuário e senha para entrar.' : undefined} />
         {isLocalMode ? (
           <View style={styles.localBox}>
             <Text variant="caption" color={colors.muted} style={{ textAlign: 'center' }}>
