@@ -1,0 +1,72 @@
+{
+  "expo": {
+    "name": "ORDO",
+    "slug": "ordo",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "br.com.ordo.app"
+    },
+    "android": {
+      "package": "br.com.ordo.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#F2B705",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-sqlite",
+      "expo-sharing",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "backgroundColor": "#F7F6F2"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "O ORDO usa a câmera para ler o código de barras dos produtos."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O ORDO usa suas fotos para a imagem do produto.",
+          "cameraPermission": "O ORDO usa a câmera para fotografar produtos."
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "O ORDO usa o microfone para a busca de produtos por voz.",
+          "speechRecognitionPermission": "O ORDO usa o reconhecimento de fala para buscar produtos por voz."
+        }
+      ]
+    ],
+    "scheme": "ordo",
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "supabaseUrl": "",
+      "supabaseAnonKey": ""
+    }
+  }
+}
