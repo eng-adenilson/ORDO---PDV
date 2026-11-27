@@ -28,3 +28,12 @@ export async function markError(clientId: string, status: Exclude<OutboxStatus, 
   const db = await getDb();
   await db.runAsync('UPDATE outbox SET status = ?, attempts = attempts + 1, last_error = ? WHERE client_id = ?', status, message, clientId);
 }
+
+/** "Tentar de novo": volta o item rejeitado/falho para a fila. */
+export async function retryOutbox(clientId: string) {
+  const db = await getDb();
+  await db.runAsync("UPDATE outbox SET status = 'pending', last_error = NULL WHERE client_id = ?", clientId);
+}
+
+/** Descartar um item rejeitado (o vendedor decidiu não refazer). */
+export async function discardOutbox(clientId: string) { await markDone(clientId); }
