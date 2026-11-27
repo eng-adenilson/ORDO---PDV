@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { setRepoActor } from '@/data/repo';
 import { isDemo } from '@/lib/env';
 import { supabase } from '@/lib/supabase';
 import { createLocalAuth, toEmail, type AuthUser } from './localAuth';
@@ -55,6 +56,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     return () => { active = false; data.subscription.unsubscribe(); };
   }, []);
+
+  useEffect(() => { setRepoActor(user ? { id: user.id, name: user.name } : null); }, [user]);
 
   const signIn: Ctx['signIn'] = async (login, password) => {
     if (isDemo) {
