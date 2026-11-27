@@ -42,3 +42,4 @@ yarn-error.*
 
 # env com segredos
 .env
+.tmp-export/

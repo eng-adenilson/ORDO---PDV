@@ -175,24 +175,24 @@ Imagem: `docs/figma/png/<ID>.png` · Vetor: `docs/figma/svg/<ID>.svg`.
 | R1-login-erro | Login com erro | idem | ✅ |
 | 02-vendas | Vender (início) | `src/app/(app)/(tabs)/index.tsx` | ✅ |
 | 02b…02e | Busca por voz: resultado · ouvindo · sem quantidade · não entendi | `src/features/voice/VoiceSheet.tsx` | ✅ |
-| 02f-busca-digitando, 02g-busca-sem-resultado | Busca por texto | `src/app/(app)/busca.tsx` | 🧱 |
+| 02f-busca-digitando, 02g-busca-sem-resultado | Busca por texto | `src/app/(app)/busca.tsx` | ✅ |
 | 03-carrinho, 03c-carrinho-desconto, R2-carrinho-vazio | Carrinho e desconto | `src/app/(app)/carrinho.tsx`, `src/features/cart/DiscountSheet.tsx` | ✅ |
-| 03b-pagamento, 04-cadastro-rapido-cliente | Pagamento + cliente rápido | `src/app/(app)/pagamento.tsx` | ✅ (falta buscar cliente existente) |
+| 03b-pagamento, 04-cadastro-rapido-cliente | Pagamento + cliente rápido | `src/app/(app)/pagamento.tsx` | ✅ |
 | R3-venda-concluida, R4-venda-salva-offline | Resultado da venda | `src/app/(app)/venda-concluida.tsx` | ✅ |
-| 05-clientes | Clientes | `src/app/(app)/clientes/index.tsx` (+ `novo.tsx`) | 🧱 |
-| 06-cadastro-produto, R7-produto-codigo-duplicado | Produto (novo/editar) | `src/app/(app)/produtos/novo.tsx`, `[id].tsx` | 🧱 |
-| 13-produtos, R8-produtos-produto-salvo | Lista de produtos | `src/app/(app)/produtos/index.tsx` | 🧱 |
-| 07-entrada-mercadorias, 12-entrada-produto-novo | Entrada de mercadorias | `src/app/(app)/entrada.tsx` | 🧱 |
-| R5-entrada-registrada | Resultado da entrada | `src/app/(app)/entrada-registrada.tsx` | 🧱 |
-| 08-consulta-estoque, R9-estoque-exportacao-pronta | Estoque | `src/app/(app)/(tabs)/estoque.tsx` | 🧱 |
-| 09-historico-vendas | Histórico | `src/app/(app)/(tabs)/historico.tsx` | 🧱 |
-| 09b-venda-cancelar, 18-venda-cancelada | Detalhe da venda / cancelar | `src/app/(app)/vendas/[id].tsx` | 🧱 |
-| 10a-abrir-caixa, 10-relatorio-diario-caixa | Caixa (aba) | `src/app/(app)/(tabs)/caixa.tsx` | 🧱 |
-| 14-relatorio-do-dia | Relatório completo | `src/app/(app)/relatorio.tsx` | 🧱 |
-| 15-fechar-caixa, R6-caixa-fechado | Fechar caixa e resultado | `src/app/(app)/caixa-fechar.tsx`, `caixa-fechado.tsx` | 🧱 |
-| 11-mais | Mais | `src/app/(app)/(tabs)/mais.tsx` | 🧱 (botão Sair já funciona) |
-| 16-scanner | Leitor de código de barras | `src/app/(app)/scanner.tsx` | 🧱 |
-| 17-sincronizacao | Sincronização | `src/app/(app)/sincronizacao.tsx` | 🧱 |
+| 05-clientes | Clientes | `src/app/(app)/clientes/index.tsx` (+ `novo.tsx`) | ✅ |
+| 06-cadastro-produto, R7-produto-codigo-duplicado | Produto (novo/editar) | `src/app/(app)/produtos/novo.tsx`, `[id].tsx` | ✅ |
+| 13-produtos, R8-produtos-produto-salvo | Lista de produtos | `src/app/(app)/produtos/index.tsx` | ✅ |
+| 07-entrada-mercadorias, 12-entrada-produto-novo | Entrada de mercadorias | `src/app/(app)/entrada.tsx` | ✅ |
+| R5-entrada-registrada | Resultado da entrada | `src/app/(app)/entrada-registrada.tsx` | ✅ |
+| 08-consulta-estoque, R9-estoque-exportacao-pronta | Estoque | `src/app/(app)/(tabs)/estoque.tsx` | ✅ |
+| 09-historico-vendas | Histórico | `src/app/(app)/(tabs)/historico.tsx` | ✅ |
+| 09b-venda-cancelar, 18-venda-cancelada | Detalhe da venda / cancelar | `src/app/(app)/vendas/[id].tsx` | ✅ |
+| 10a-abrir-caixa, 10-relatorio-diario-caixa | Caixa (aba) | `src/app/(app)/(tabs)/caixa.tsx` | ✅ |
+| 14-relatorio-do-dia | Relatório completo | `src/app/(app)/relatorio.tsx` | ✅ |
+| 15-fechar-caixa, R6-caixa-fechado | Fechar caixa e resultado | `src/app/(app)/caixa-fechar.tsx`, `caixa-fechado.tsx` | ✅ |
+| 11-mais | Mais | `src/app/(app)/(tabs)/mais.tsx` | ✅ |
+| 16-scanner | Leitor de código de barras | `src/app/(app)/scanner.tsx` | ✅ |
+| 17-sincronizacao | Sincronização | `src/app/(app)/sincronizacao.tsx` | ✅ |
 
 ### 5.1 Mapa de navegação
 

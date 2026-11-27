@@ -11,6 +11,8 @@ Ponto de venda para Android (Expo + Supabase), começando por uma loja de ferrag
 - **[AGENTS.md](AGENTS.md)**: regras para agentes de IA (Claude Code, Codex, Cursor…).
 
 ## Rodar localmente (sem nuvem e sem login Google)
+> **Node 22.13+ é obrigatório** (Expo SDK 58 / React Native 0.88). Com nvm: `nvm install 22 && nvm use 22`. No Windows sem nvm funcionando, use o `iniciar.cmd` (usa o Node 22 portátil em `%USERPROFILE%	ools`).
+> No modo local **todos os dados** (produtos, estoque, vendas, caixa, clientes) ficam no SQLite do aparelho (`ordo-local.db`, via expo-sqlite), com as mesmas regras das RPCs do Supabase (`src/lib/local/engine.ts`).
 ```bash
 npm install
 npx expo start            # sem .env roda em modo local com dados de exemplo
@@ -44,6 +46,7 @@ Sem `.env`, o app usa **autenticação local persistida no aparelho** (sem Googl
 Configuração de voz e câmera: SPEC §3.
 
 ## O que já está pronto
+- **Todas as 14 issues do SPEC §12 implementadas no modo local**: busca, clientes, produtos (foto, código duplicado, scanner), entrada de mercadorias, estoque, histórico/cancelamento, caixa e relatório, sincronização e exportação Excel (.xlsx).
 - Projeto Expo SDK 58 + Expo Router com **todas as rotas** das telas, trava de login e abas.
 - Design system em código (tokens + 18 componentes) idêntico ao Figma; ícone e splash a partir do logo.
 - Login local persistido em `AsyncStorage` (sem Google) + suporte a Supabase Auth via `.env`.
