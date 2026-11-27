@@ -7,7 +7,7 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/netinfo": "12.0.1",
     "@supabase/supabase-js": "^2.119.2",
-    "expo": "~58.0.26",
+    "expo": "~58.1.0",
     "expo-camera": "~58.0.14",
     "expo-constants": "~58.0.16",
     "expo-crypto": "~58.0.8",
@@ -21,6 +21,7 @@
     "expo-splash-screen": "~58.0.14",
     "expo-sqlite": "~58.0.18",
     "expo-status-bar": "~58.0.5",
+    "fflate": "^0.8.3",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.1",
@@ -30,7 +31,9 @@
     "react-native-url-polyfill": "^4.0.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.6.0",
     "@types/react": "~19.3.0",
+    "sql.js": "^1.17.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -40,7 +43,8 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
-    "test": "node --experimental-strip-types --test \"src/**/__tests__/*.test.ts\""
+    "test": "node scripts/run-tests.mjs",
+    "test:sql": "node supabase/tests/run-local.mjs"
   },
   "private": true
 }

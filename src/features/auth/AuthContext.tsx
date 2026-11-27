@@ -1,41 +1,93 @@
-import type { Session } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { setRepoActor } from '@/data/repo';
 import { isDemo } from '@/lib/env';
 import { supabase } from '@/lib/supabase';
+import { createLocalAuth, toEmail, type AuthUser } from './localAuth';
+import { createSupabaseAuth } from './supabaseAuth';
 
-type AuthUser = { id: string; name: string };
-type Ctx = { user: AuthUser | null; loading: boolean; signIn: (login: string, password: string) => Promise<string | null>; signOut: () => Promise<void> };
+export { toEmail, type AuthUser };
+
+type RegisterInput = { name: string; login: string; password: string };
+type Ctx = {
+  user: AuthUser | null;
+  loading: boolean;
+  isLocalMode: boolean;
+  signIn: (login: string, password: string) => Promise<string | null>;
+  registerLocal: (input: RegisterInput) => Promise<string | null>;
+  signOut: () => Promise<void>;
+};
 
 const AuthCtx = createContext<Ctx | null>(null);
+const localAuth = createLocalAuth(AsyncStorage);
 
-/** Login "joao.balcao" vira "joao.balcao@ordo.local" (crie os usuários assim no Supabase) — ver SPEC §7.1. */
-export const toEmail = (login: string) => (login.includes('@') ? login.trim() : `${login.trim().toLowerCase()}@ordo.local`);
+const isDeviceOffline = async () => {
+  try {
+    const net = await NetInfo.fetch();
+    return net.isConnected === false || net.isInternetReachable === false;
+  } catch {
+    return false;
+  }
+};
 
-function fromSession(s: Session | null): AuthUser | null {
-  if (!s) return null;
-  const name = (s.user.user_metadata?.name as string | undefined) ?? s.user.email?.split('@')[0] ?? 'Vendedor';
-  return { id: s.user.id, name };
-}
+const supabaseAuth = createSupabaseAuth(supabase.auth, AsyncStorage, isDeviceOffline);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(!isDemo);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isDemo) return;
-    supabase.auth.getSession().then(({ data }) => { setUser(fromSession(data.session)); setLoading(false); });
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setUser(fromSession(s)));
-    return () => data.subscription.unsubscribe();
+    let active = true;
+    if (isDemo) {
+      localAuth.getSession().then((u) => {
+        if (active) { setUser(u); setLoading(false); }
+      });
+      return () => { active = false; };
+    }
+
+    supabaseAuth.restoreSession().then((u) => {
+      if (active) { setUser(u); setLoading(false); }
+    });
+    const { data } = supabase.auth.onAuthStateChange((event, s) => {
+      supabaseAuth.syncFromEvent(event, s).then((u) => {
+        if (active) setUser(u);
+      });
+    });
+    return () => { active = false; data.subscription.unsubscribe(); };
   }, []);
 
-  const signIn: Ctx['signIn'] = async (login, password) => {
-    if (isDemo) { setUser({ id: 'demo-joao', name: 'João' }); return null; }
-    const { error } = await supabase.auth.signInWithPassword({ email: toEmail(login), password });
-    return error ? 'Usuário ou senha incorretos.' : null;
-  };
-  const signOut = async () => { if (!isDemo) await supabase.auth.signOut(); setUser(null); };
+  useEffect(() => { setRepoActor(user ? { id: user.id, name: user.name } : null); }, [user]);
 
-  return <AuthCtx.Provider value={{ user, loading, signIn, signOut }}>{children}</AuthCtx.Provider>;
+  const signIn: Ctx['signIn'] = async (login, password) => {
+    if (isDemo) {
+      const res = await localAuth.signIn(login, password);
+      if (res.user) setUser(res.user);
+      return res.error;
+    }
+    const res = await supabaseAuth.signIn(login, password);
+    if (res.user) setUser(res.user);
+    return res.error;
+  };
+
+  const registerLocal: Ctx['registerLocal'] = async (input) => {
+    if (!isDemo) return 'Cadastro local disponível apenas no modo offline/local.';
+    const res = await localAuth.register(input);
+    if (res.user) setUser(res.user);
+    return res.error;
+  };
+
+  const signOut = async () => {
+    if (isDemo) await localAuth.signOut();
+    else await supabaseAuth.signOut();
+    setUser(null);
+  };
+
+  return (
+    <AuthCtx.Provider value={{ user, loading, isLocalMode: isDemo, signIn, registerLocal, signOut }}>
+      {children}
+    </AuthCtx.Provider>
+  );
 }
 
 export function useAuth() {

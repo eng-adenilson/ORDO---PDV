@@ -10,20 +10,49 @@ Ponto de venda para Android (Expo + Supabase), começando por uma loja de ferrag
 - **[docs/requisitos-v2.0.md](docs/requisitos-v2.0.md)**: requisitos do cliente.
 - **[AGENTS.md](AGENTS.md)**: regras para agentes de IA (Claude Code, Codex, Cursor…).
 
-## Rodar
+## Rodar localmente (sem nuvem e sem login Google)
+> **Node 22.13+ é obrigatório** (Expo SDK 58 / React Native 0.88). Com nvm: `nvm install 22 && nvm use 22`. No Windows sem nvm funcionando, use o `iniciar.cmd` (usa o Node 22 portátil em `%USERPROFILE%	ools`).
+> No modo local **todos os dados** (produtos, estoque, vendas, caixa, clientes) ficam no SQLite do aparelho (`ordo-local.db`, via expo-sqlite), com as mesmas regras das RPCs do Supabase (`src/lib/local/engine.ts`).
 ```bash
 npm install
-npx expo start            # sem .env roda em modo demonstração (qualquer login entra)
+npx expo start            # sem .env roda em modo local com dados de exemplo
 npm run typecheck && npm test
+npm run test:sql          # roda 0001_schema, 0002_rpc, seed e rpc_test no PostgreSQL local (PGlite)
 ```
-Configuração do Supabase, voz e câmera: SPEC §3.
+Sem `.env`, o app usa **autenticação local persistida no aparelho** (sem Google e sem internet):
+- Usuários iniciais: `joao.balcao` (João) e `carla` (Carla), senha padrão `123456`.
+- Também é possível criar novos usuários locais na própria tela de login em **Criar usuário local**.
+
+## Configurar `.env` e Supabase (opcional / produção)
+1. Copie `.env.example` para `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+2. No painel do seu projeto Supabase, abra **Settings → API** (ou `supabase status` se usar Supabase local) e preencha no `.env`:
+   - `EXPO_PUBLIC_SUPABASE_URL`: **Project URL** (ex.: `https://abcdefghijkl.supabase.co`)
+   - `EXPO_PUBLIC_SUPABASE_ANON_KEY`: **anon / public key**
+   > Não commite o arquivo `.env` (ele já está listado no `.gitignore`). Sem essas variáveis preenchidas, o app permanece em modo local.
+3. No **SQL Editor** do Supabase (ou via `supabase db push`), aplique na ordem:
+   - `supabase/migrations/0001_schema.sql`
+   - `supabase/migrations/0002_rpc.sql`
+   - `supabase/seed.sql` (opcional, dados iniciais de demonstração)
+   - `supabase/storage.sql` (cria o bucket público `product-photos` e suas policies para `authenticated`)
+4. Em **Authentication → Users**, crie os vendedores com e-mail no formato `<login>@ordo.local` (ex.: `joao.balcao@ordo.local`, `carla@ordo.local`) e `User Metadata` `{"name": "João"}` (ver SPEC §7).
+5. Para validar as regras do banco em um PostgreSQL externo de teste:
+   ```bash
+   psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rpc_test.sql
+   ```
+
+Configuração de voz e câmera: SPEC §3.
 
 ## O que já está pronto
+- **Todas as 14 issues do SPEC §12 implementadas no modo local**: busca, clientes, produtos (foto, código duplicado, scanner), entrada de mercadorias, estoque, histórico/cancelamento, caixa e relatório, sincronização e exportação Excel (.xlsx).
 - Projeto Expo SDK 58 + Expo Router com **todas as rotas** das telas, trava de login e abas.
 - Design system em código (tokens + 18 componentes) idêntico ao Figma; ícone e splash a partir do logo.
+- Login local persistido em `AsyncStorage` (sem Google) + suporte a Supabase Auth via `.env`.
 - Fluxo de venda completo de referência: login → vender (grade, categorias, voz) → carrinho (desconto por item, bloqueio por estoque) → pagamento (cliente rápido) → venda concluída / salva offline.
-- Banco Supabase: tabelas, RLS, funções de venda, cancelamento, entrada, caixa e relatório, testadas em PostgreSQL 16 (inclui venda simultânea da última unidade).
+- Banco Supabase: tabelas, RLS, funções de venda, cancelamento, entrada, caixa e relatório, validadas em PostgreSQL 16 e no runner local (`npm run test:sql`, inclui venda simultânea da última unidade).
 - Fila offline com sincronização automática e idempotente.
-- Testes: interpretação da voz e cálculo do carrinho (`npm test`), regras do banco (`supabase/tests/rpc_test.sql`).
+- Testes: autenticação local, interpretação da voz e cálculo do carrinho (`npm test`), regras do banco (`npm run test:sql` / `supabase/tests/rpc_test.sql`).
 
 O restante está organizado em 14 issues no SPEC §12, com um prompt pronto por issue em [`docs/prompts/`](docs/prompts/).

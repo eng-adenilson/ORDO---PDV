@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Badge, BottomSheet, Button, Card, Icon, Text, Thumb } from '@/components/ui';
 import { searchProducts } from '@/data/repo';
 import { formatMoney } from '@/lib/money';
-import { useVoiceSearch } from '@/lib/voice/useVoiceSearch';
+import { useVoiceSearch, voiceAvailable } from '@/lib/voice/useVoiceSearch';
 import { colors, radius } from '@/theme/tokens';
 import type { SaleProduct } from '@/types/domain';
 
@@ -16,7 +16,13 @@ export function VoiceSheet({ visible, onClose, onConfirm, onType }: {
   const [results, setResults] = useState<SaleProduct[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
 
-  useEffect(() => { if (visible) { setResults([]); setSelected(null); void voice.start(); } else voice.stop(); }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!visible) { voice.stop(); return; }
+    setResults([]); setSelected(null);
+    // Só inicia o reconhecimento se o módulo nativo estiver disponível (dev build).
+    // No Expo Go mostramos o estado "não disponível" sem chamar start().
+    if (voiceAvailable) void voice.start();
+  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (voice.state !== 'done' || !voice.parsed) return;
     searchProducts(voice.parsed.query).then((r) => { setResults(r.slice(0, 5)); setSelected(r[0]?.id ?? null); });
@@ -24,6 +30,26 @@ export function VoiceSheet({ visible, onClose, onConfirm, onType }: {
 
   const qty = voice.parsed?.qty ?? 1;
   const restart = () => { setResults([]); setSelected(null); void voice.start(); }; // §4.1: nova busca substitui a anterior
+
+  // Módulo nativo ausente (Expo Go ou ambiente sem o plugin compilado).
+  // Orienta o vendedor a usar a digitação sem mostrar mensagem de erro confusa.
+  if (!voiceAvailable) {
+    return (
+      <BottomSheet visible={visible} title="Busca por voz" onClose={onClose}
+        footer={<View style={{ flex: 1 }}><Button label="Digitar" icon="search" onPress={onType} /></View>}>
+        <View style={styles.center}>
+          <View style={[styles.ring, { backgroundColor: colors.warnSoft }]}>
+            <Icon name="mic" size={40} color={colors.warn} />
+          </View>
+          <Text variant="section">Voz não disponível neste app</Text>
+          <Text variant="caption" color={colors.muted} style={{ textAlign: 'center' }}>
+            A busca por voz funciona no app instalado via EAS.{'\n'}
+            Aqui no Expo Go, use a busca por texto.
+          </Text>
+        </View>
+      </BottomSheet>
+    );
+  }
 
   if (voice.state === 'listening' || voice.state === 'idle') {
     return (
